@@ -11,7 +11,14 @@
 #define GIGAS 9
 #define TERAS 12
 
+
 #define MEMINFO_FILE "/proc/meminfo"
+
+//for parsing MEMINFO_FILE
+#define PARSE_BYTES_UNIT "b"
+#define PARSE_KILO_BYTES_UNIT "kb"
+#define PARSE_MEGA_BYTES_UNIT "mb"
+#define PARSE_GIGA_BYTES_UNIT "gb"
 struct flagsinfo
 {
 	char size_unit; //b, m, g, t
@@ -25,11 +32,23 @@ struct flagsinfo
 struct meminfo
 {
 	//raw data - in kB !
+	//defines from /proc/meminfo
+#define FREEC_MEM_TOTAL "memtotal:"
 	unsigned int mem_total;
+#define FREEC_MEM_FREE "memfree:"
 	unsigned int mem_free;
 
+#define FREEC_BUFFERS "buffers:"
+	unsigned int buffers;
+#define FREEC_CACHED "cached:"
+	unsigned int cached;
+
+#define FREEC_SWAP_TOTAL "swaptotal:"
 	unsigned int swap_total;
+#define FREEC_SWAP_FREE "swapfree:"
 	unsigned int swap_free;
+
+
 };
 
 void
@@ -45,6 +64,11 @@ void
 explode_line(char *buffer, char *tag, char *value, char *unit);
 
 void
-print_usage(char **argv);
+insert_data(char *value, char *unit, unsigned int *where);
 
+void
+convert_string_to_lower(char *s);
+
+void
+print_usage(char **argv);
 #endif

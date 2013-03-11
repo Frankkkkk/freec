@@ -12,6 +12,7 @@
 
 #include <unistd.h>
 #include <getopt.h>
+#include <string.h>
 
 #include "freec.h"
 
@@ -26,11 +27,18 @@ main(int argc, char **argv)
 
 	while(flags.count_times) {
 		get_meminfo(&memory_info);
+		printf("memtot: %u\n", memory_info.mem_total);
+		printf("memfree: %u\n", memory_info.mem_free);
+		printf("buffers: %u\n", memory_info.buffers);
+		printf("cached: %u\n", memory_info.cached);
+		printf("swap_total: %u\n", memory_info.swap_total);
+		printf("swap_free: %u\n", memory_info.swap_free);
 //		work_meminfo(&memory_info);
 //		display_meminfo(&memory_info);
 
 		flags.count_times--;
-		sleep(flags.seconds);
+		if(flags.count_times)
+			sleep(flags.seconds);
 	}
 
 	//free everithing if needed
@@ -41,11 +49,11 @@ main(int argc, char **argv)
 void
 conf_default_flags(struct flagsinfo *flags)
 {
-	flags->size_unit  = MEGAS;
-	flags->SI_unit    = 0;
-	flags->humanize   = 1;
-	flags->colorize   = 1;
-	flags->seconds    = 1;
+	flags->size_unit   = MEGAS;
+	flags->SI_unit     = 0;
+	flags->humanize    = 1;
+	flags->colorize    = 1;
+	flags->seconds     = 1;
 	flags->count_times = 1;
 }
 
@@ -121,16 +129,32 @@ get_meminfo(struct meminfo *mem_info)
 
 	if((meminfo_file = fopen(MEMINFO_FILE, "r")) == NULL)
 	{
-		perror("Could not open file "MEMINFO_FILE", are-you sure you're"\
+		perror("Could not open file "MEMINFO_FILE", are-you sure you're"
 		       "\non a Linux machine ? ");
 		exit(EXIT_FAILURE);
 	}
 
 	while(fgets(buffer, 199, meminfo_file) != NULL) {
-		printf("Read >%s<\n", buffer);
+		convert_string_to_lower(buffer);
 		explode_line(buffer, tag, value, unit);
-		printf("Got: >%s< >%s< >%s<\n", tag, value, unit);
-		//WORK ON IT
+
+		if(strcmp(tag, FREEC_MEM_TOTAL) == 0) 
+			insert_data(value, unit, &mem_info->mem_total);
+
+		else if(strcmp(tag, FREEC_MEM_FREE) == 0)
+			insert_data(value, unit, &mem_info->mem_free);
+
+		else if(strcmp(tag, FREEC_BUFFERS) == 0)
+			insert_data(value, unit, &mem_info->buffers);
+
+		else if(strcmp(tag, FREEC_CACHED) == 0)
+			insert_data(value, unit, &mem_info->cached);
+
+		else if(strcmp(tag, FREEC_SWAP_TOTAL) == 0)
+			insert_data(value, unit, &mem_info->swap_total);
+
+		else if(strcmp(tag, FREEC_SWAP_FREE) == 0)
+			insert_data(value, unit, &mem_info->swap_free);
 	}
 }
 
@@ -140,21 +164,45 @@ explode_line(char *buffer, char *tag, char *value, char *unit)
 	char *arg;
 
 	arg = strtok(buffer, " ");
+	tag[0] = '\0';
 	strcpy(tag, arg);
 
-	arg = strtok(buffer, " ");
+	arg = strtok(NULL, " ");
 	if(arg == NULL)
 		printf("ERROR");
-	strcpy(tag, arg);
+	value[0] = '\0';
+	strcpy(value, arg);
 
 
-	arg = strtok(buffer, " ");
+	arg = strtok(NULL, " ");
 	if(arg == NULL)
-		unit = '\0';
-	else
-		strcpy(tag, arg);
+		unit[0] = '\0';
+	else {
+		unit[0] = '\0';
+		strcpy(unit, arg);
+	}
 }
 
+
+void
+insert_data(char *value, char *unit, unsigned int *where)
+{
+	if(strcmp(unit, PARSE_KILO_BYTES_UNIT)) {
+		*where = atoi(value);
+	}
+	else //TODO, but should not happen
+		printf("ERROR in insert_data");
+}
+
+void
+convert_string_to_lower(char *s)
+{
+	while(*s) {
+		if(*s >= 'A' && *s <= 'Z')
+			*s += 'a'-'A';
+		s++;
+	}
+}
 
 void
 print_usage(char **argv)
