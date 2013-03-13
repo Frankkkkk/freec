@@ -194,7 +194,8 @@ work_swap(struct meminfo *mem, struct conf_info *conf)
 {
 	mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
 	                        mem->swap_total;
-	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free;
+	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free -
+	                        1; //hahaha, dirty
 }
 
 
@@ -202,32 +203,27 @@ void
 display_meminfo(struct meminfo *mem, struct conf_info *conf)
 {
 	int i;
-	putchar('[');
+	fputs(MEM_TAG" [", stdout);
 	i = mem->pixels_mem_used; //nee to keep mem->pixels*
-	while(i) {
+	while(i--)
 		putchar('u');
-		i--;
-	}
 
 	i = mem->pixels_mem_free;
-	while(i > 0) {
+	while(i--)
 		putchar('f');
-		i--;
-	}
+
 	putchar(']');
 	putchar('\n');
 
-	putchar('[');
+	fputs(SWAP_TAG" [", stdout);
 	i = mem->pixels_swap_used;
-	while(i) {
+	while(i--)
 		putchar('u');
-		i--;
-	}
+
 	i = mem->pixels_swap_free;
-	while(i) {
+	while(i--)
 		putchar('f');
-		i--;
-	}
+
 	putchar(']');
 	putchar('\n');
 }

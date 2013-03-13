@@ -39,6 +39,7 @@ struct meminfo
 {
 	//raw data - in kB !
 	//defines from /proc/meminfo
+#define MEM_TAG "Mem.:"
 #define FREEC_MEM_TOTAL "memtotal:"
 	unsigned int mem_total;
 #define FREEC_MEM_FREE "memfree:"
@@ -54,7 +55,7 @@ struct meminfo
 	int pixels_mem_buffered;
 	int pixels_mem_cached;
 	int pixels_mem_free;
-
+#define SWAP_TAG "Swap:"
 #define FREEC_SWAP_TOTAL "swaptotal:"
 	unsigned int swap_total;
 #define FREEC_SWAP_FREE "swapfree:"
