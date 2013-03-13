@@ -168,10 +168,6 @@ get_meminfo(struct meminfo *mem_info)
 void
 work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 {
-
-	mem_info->mem_used = mem_info->mem_total -
-	                     mem_info->mem_free; //FIXME not the exact
-
 	work_central(mem_info, conf);
 	work_swap(mem_info, conf);
 }
@@ -181,38 +177,61 @@ work_central(struct meminfo *mem, struct conf_info *conf)
 {
 	unsigned int worker;
 
-	worker = (mem->mem_used / mem->mem_total) * conf->bar_length;
-	mem->pixels_mem_used = worker;
+	mem->mem_used = mem->mem_total -
+	                 mem->mem_free; //FIXME not the exact
 
-	worker = (mem->mem_free / mem->mem_total) * conf->bar_length;
+	worker = (mem->mem_used * conf->bar_length) / mem->mem_total;
+	mem->pixels_mem_used = worker;
+	printf("I have: %u / %u * %u = %u\n", mem->mem_used, mem->mem_total, conf->bar_length, worker);
+
+	worker = (mem->mem_free * conf->bar_length) / mem->mem_total;
 	mem->pixels_mem_free = worker;
+	printf("I have: %u / %u * %u = %u\n", mem->mem_free , mem->mem_total, conf->bar_length, worker);
 }
 
 void
 work_swap(struct meminfo *mem, struct conf_info *conf)
 {
-//	mem->pixels_per_swap_free = 
-
+	mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
+	                        mem->swap_total;
+	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free;
 }
 
 
 void
 display_meminfo(struct meminfo *mem, struct conf_info *conf)
 {
+	int i;
 	putchar('[');
-	while(mem->pixels_mem_used > 0) {
+	i = mem->pixels_mem_used; //nee to keep mem->pixels*
+	while(i) {
 		putchar('u');
-		mem->pixels_mem_used--;
+		i--;
 	}
 
-	while(mem->pixels_mem_free > 0){
+	i = mem->pixels_mem_free;
+	while(i > 0) {
 		putchar('f');
-		mem->pixels_mem_used--;
+		i--;
 	}
+	putchar(']');
+	putchar('\n');
 
+	putchar('[');
+	i = mem->pixels_swap_used;
+	while(i) {
+		putchar('u');
+		i--;
+	}
+	i = mem->pixels_swap_free;
+	while(i) {
+		putchar('f');
+		i--;
+	}
 	putchar(']');
 	putchar('\n');
 }
+
 
 
 void
