@@ -1,7 +1,8 @@
 #ifndef H_FREE_INCLUDED
 #define H_FREE_INCLUDED
 
-/* START OF CONFIGURATION DEFINES */
+/* START OF CONFIGURATION */
+/* List of available colors */
 #define RED    "\033[;31m"
 #define GREEN  "\033[;32m"
 #define YELLOW "\033[;33m"
@@ -10,16 +11,14 @@
 #define CYAN   "\033[;36m"
 #define NORMAL "\033[;m"
 
+/* Which ones do you want ? */
 #define COLOR_USED   RED 
 #define COLOR_FREE   GREEN
 #define COLOR_NORMAL NORMAL
 
 
 
-
-
-
-/* You should not have to touch below */
+/* You should not need to touch below */
 #define BYTES 0
 #define KILOS 3
 #define MEGAS 6

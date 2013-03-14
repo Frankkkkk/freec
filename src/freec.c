@@ -28,12 +28,12 @@ main(int argc, char **argv)
 
 	while(conf.count_times) {
 		get_meminfo(&memory_info);
-		printf("memtot: %u\n", memory_info.mem_total);
+		printf("memtot:  %u\n", memory_info.mem_total);
 		printf("memfree: %u\n", memory_info.mem_free);
 		printf("buffers: %u\n", memory_info.buffers);
-		printf("cached: %u\n", memory_info.cached);
+		printf("cached:  %u\n", memory_info.cached);
 		printf("swap_total: %u\n", memory_info.swap_total);
-		printf("swap_free: %u\n", memory_info.swap_free);
+		printf("swap_free:  %u\n", memory_info.swap_free);
 		get_tty_info(&conf);
 		work_meminfo(&memory_info, &conf);
 		display_meminfo(&memory_info, &conf);
@@ -58,7 +58,7 @@ conf_default_flags(struct conf_info *conf)
 	conf->seconds     = 1;
 	conf->count_times = 1;
 	conf->is_a_tty    = 1;
-	conf->tty_width   = 80;
+	conf->tty_width   = 80; //FIXME
 	conf->bar_length  = 30;
 }
 
@@ -193,7 +193,7 @@ void
 work_swap(struct meminfo *mem, struct conf_info *conf)
 {
 	mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
-	                        mem->swap_total;
+	                        mem->swap_total - 1;
 	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free -
 	                        1; //hahaha, dirty
 }
@@ -212,7 +212,7 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	i = mem->pixels_mem_free;
 	while(i-->0)
 		putchar('f');
-	fputs(COLOR_NORMAL"]\n", stdout);
+	fputs(COLOR_NORMAL "]\n", stdout);
 
 
 	fputs(SWAP_TAG" ["COLOR_USED, stdout);
@@ -224,7 +224,7 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	while(i-->0)
 		putchar('f');
 
-	fputs(COLOR_NORMAL"]\n", stdout);
+	fputs(COLOR_NORMAL "]\n", stdout);
 }
 
 
