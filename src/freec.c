@@ -169,6 +169,7 @@ void
 work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 {
 	work_central(mem_info, conf);
+	/* TODO: Check if has swap !!!! */
 	work_swap(mem_info, conf);
 }
 
@@ -209,36 +210,39 @@ void
 display_meminfo(struct meminfo *mem, struct conf_info *conf)
 {
 	int i;
+
+	/* DOING THE "RAM" FIRST */
 	fputs(MEM_TAG" ["COLOR_USED, stdout);
 	i = mem->pixels_mem_used; //need to keep mem->pixels
 	while(i-->0)
-		putchar('u');
+		putchar(CHAR_USED);
 
 	fputs(COLOR_BUFFERS, stdout);
 	i = mem->pixels_mem_buffers;
 	while(i-->0)
-		putchar('b');
+		putchar(CHAR_BUFFERS);
 
 	fputs(COLOR_CACHED, stdout);
 	i = mem->pixels_mem_cached;
 	while(i-->0)
-		putchar('c');
+		putchar(CHAR_CACHED);
 
 	fputs(COLOR_FREE, stdout);
 	i = mem->pixels_mem_free;
 	while(i-->0)
-		putchar('f');
+		putchar(CHAR_FREE);
 	fputs(COLOR_NORMAL "]\n", stdout);
 
 
+	/* AND THEN SWAP */
 	fputs(SWAP_TAG" ["COLOR_USED, stdout);
 	i = mem->pixels_swap_used;
 	while(i-->0)
-		putchar('u');
+		putchar(CHAR_USED);
 	fputs(COLOR_FREE, stdout);
 	i = mem->pixels_swap_free;
 	while(i-->0)
-		putchar('f');
+		putchar(CHAR_FREE);
 
 	fputs(COLOR_NORMAL "]\n", stdout);
 }
@@ -321,5 +325,17 @@ convert_string_to_lower(char *s)
 int
 proportionality(int have, int total, int ratio)
 {
-	return (have * ratio)/total;
+	double n;
+	int o;
+
+	n = ((double)have * (double)(ratio))/((double)total);
+	o = (int)n;
+	printf("%d, %lf", o, n);
+	n -= o;
+	if(n >= 0.7) {
+		printf("I");
+		o++;
+	}
+	putchar('\n');
+	return o;
 }

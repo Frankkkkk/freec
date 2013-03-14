@@ -18,6 +18,11 @@
 #define COLOR_FREE    GREEN
 #define COLOR_NORMAL  NORMAL
 
+#define CHAR_USED    'U'
+#define CHAR_BUFFERS 'b'
+#define CHAR_CACHED  'c'
+#define CHAR_FREE    'f'
+
 
 
 /* You should not need to touch below */
