@@ -12,9 +12,11 @@
 #define NORMAL "\033[;m"
 
 /* Which ones do you want ? */
-#define COLOR_USED   RED 
-#define COLOR_FREE   GREEN
-#define COLOR_NORMAL NORMAL
+#define COLOR_USED    RED 
+#define COLOR_BUFFERS YELLOW
+#define COLOR_CACHED  PURPLE
+#define COLOR_FREE    GREEN
+#define COLOR_NORMAL  NORMAL
 
 
 
@@ -66,9 +68,9 @@ struct meminfo
 	unsigned int cached;
 
 	int pixels_mem_used;
-	int pixels_mem_buffered;
-	int pixels_mem_cached;
 	int pixels_mem_free;
+	int pixels_mem_buffers;
+	int pixels_mem_cached;
 #define SWAP_TAG "Swap:"
 #define FREEC_SWAP_TOTAL "swaptotal:"
 	unsigned int swap_total;
@@ -115,4 +117,7 @@ convert_string_to_lower(char *s);
 
 void
 print_usage(char **argv);
+
+int
+proportionality(int have, int total, int ratio);
 #endif

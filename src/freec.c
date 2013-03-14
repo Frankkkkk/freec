@@ -175,18 +175,24 @@ work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 void
 work_central(struct meminfo *mem, struct conf_info *conf)
 {
-	unsigned int worker;
 
 	mem->mem_used = mem->mem_total -
-	                 mem->mem_free; //FIXME not the exact formula
+	                mem->mem_free -
+	                mem->buffers -
+	                mem->cached;
+	/*Well, theoreticaly, buffers and cache are "memused", but we want to
+	display them, so count them off */
+	mem->pixels_mem_used =
+	  proportionality(mem->mem_used, mem->mem_total, conf->bar_length);
 
-	worker = (mem->mem_used * conf->bar_length) / mem->mem_total;
-	mem->pixels_mem_used = worker;
-	printf("I have: %u / %u * %u = %u\n", mem->mem_used, mem->mem_total, conf->bar_length, worker);
+	mem->pixels_mem_free =
+	  proportionality(mem->mem_free, mem->mem_total, conf->bar_length);
 
-	worker = (mem->mem_free * conf->bar_length) / mem->mem_total;
-	mem->pixels_mem_free = worker;
-	printf("I have: %u / %u * %u = %u\n", mem->mem_free , mem->mem_total, conf->bar_length, worker);
+	mem->pixels_mem_buffers =
+	  proportionality(mem->buffers, mem->mem_total, conf->bar_length);
+
+	mem->pixels_mem_cached =
+	  proportionality(mem->cached, mem->mem_total, conf->bar_length);
 }
 
 void
@@ -208,6 +214,16 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	while(i-->0)
 		putchar('u');
 
+	fputs(COLOR_BUFFERS, stdout);
+	i = mem->pixels_mem_buffers;
+	while(i-->0)
+		putchar('b');
+
+	fputs(COLOR_CACHED, stdout);
+	i = mem->pixels_mem_cached;
+	while(i-->0)
+		putchar('c');
+
 	fputs(COLOR_FREE, stdout);
 	i = mem->pixels_mem_free;
 	while(i-->0)
@@ -227,7 +243,14 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	fputs(COLOR_NORMAL "]\n", stdout);
 }
 
+void
+print_usage(char **argv)
+{
+	fprintf(stderr, "Usage: %s blah blah\n", argv[0]);
+	exit(EXIT_FAILURE);
+}
 
+/* UTILS */
 
 void
 get_tty_info(struct conf_info *conf)
@@ -295,9 +318,8 @@ convert_string_to_lower(char *s)
 	}
 }
 
-void
-print_usage(char **argv)
+int
+proportionality(int have, int total, int ratio)
 {
-	fprintf(stderr, "Usage: %s blah blah\n", argv[0]);
-	exit(EXIT_FAILURE);
+	return (have * ratio)/total;
 }
