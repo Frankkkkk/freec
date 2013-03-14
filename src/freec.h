@@ -2,6 +2,21 @@
 #define H_FREE_INCLUDED
 
 /* START OF CONFIGURATION DEFINES */
+#define RED    "\033[;31m"
+#define GREEN  "\033[;32m"
+#define YELLOW "\033[;33m"
+#define BLUE   "\033[;34m"
+#define PURPLE "\033[;35m"
+#define CYAN   "\033[;36m"
+#define NORMAL "\033[;m"
+
+#define COLOR_USED   RED 
+#define COLOR_FREE   GREEN
+#define COLOR_NORMAL NORMAL
+
+
+
+
 
 
 /* You should not have to touch below */

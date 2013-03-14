@@ -178,7 +178,7 @@ work_central(struct meminfo *mem, struct conf_info *conf)
 	unsigned int worker;
 
 	mem->mem_used = mem->mem_total -
-	                 mem->mem_free; //FIXME not the exact
+	                 mem->mem_free; //FIXME not the exact formula
 
 	worker = (mem->mem_used * conf->bar_length) / mem->mem_total;
 	mem->pixels_mem_used = worker;
@@ -203,29 +203,28 @@ void
 display_meminfo(struct meminfo *mem, struct conf_info *conf)
 {
 	int i;
-	fputs(MEM_TAG" [", stdout);
-	i = mem->pixels_mem_used; //nee to keep mem->pixels*
-	while(i--)
+	fputs(MEM_TAG" ["COLOR_USED, stdout);
+	i = mem->pixels_mem_used; //need to keep mem->pixels
+	while(i-->0)
 		putchar('u');
 
+	fputs(COLOR_FREE, stdout);
 	i = mem->pixels_mem_free;
-	while(i--)
+	while(i-->0)
 		putchar('f');
+	fputs(COLOR_NORMAL"]\n", stdout);
 
-	putchar(']');
-	putchar('\n');
 
-	fputs(SWAP_TAG" [", stdout);
+	fputs(SWAP_TAG" ["COLOR_USED, stdout);
 	i = mem->pixels_swap_used;
-	while(i--)
+	while(i-->0)
 		putchar('u');
-
+	fputs(COLOR_FREE, stdout);
 	i = mem->pixels_swap_free;
-	while(i--)
+	while(i-->0)
 		putchar('f');
 
-	putchar(']');
-	putchar('\n');
+	fputs(COLOR_NORMAL"]\n", stdout);
 }
 
 
