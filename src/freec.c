@@ -28,13 +28,16 @@ main(int argc, char **argv)
 
 	while(conf.count_times) {
 		get_meminfo(&memory_info);
+		/*
 		printf("memtot:  %u\n", memory_info.mem_total);
 		printf("memfree: %u\n", memory_info.mem_free);
 		printf("buffers: %u\n", memory_info.buffers);
 		printf("cached:  %u\n", memory_info.cached);
 		printf("swap_total: %u\n", memory_info.swap_total);
 		printf("swap_free:  %u\n", memory_info.swap_free);
+		*/
 		get_tty_info(&conf);
+		conf.bar_length = conf.tty_width - 20;
 		work_meminfo(&memory_info, &conf);
 		display_meminfo(&memory_info, &conf);
 
@@ -59,7 +62,7 @@ conf_default_flags(struct conf_info *conf)
 	conf->count_times = 1;
 	conf->is_a_tty    = 1;
 	conf->tty_width   = 80; //FIXME
-	conf->bar_length  = 30;
+	conf->bar_length  = BAR_LEN;
 }
 
 
@@ -176,29 +179,46 @@ work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 void
 work_central(struct meminfo *mem, struct conf_info *conf)
 {
-
+	int total;
+	int ceiled; //ceil the first time only !
 	mem->mem_used = mem->mem_total -
 	                mem->mem_free -
 	                mem->buffers -
-	                mem->cached;
+	                mem->cached; //FIXME - I was tired...
 	/*Well, theoreticaly, buffers and cache are "memused", but we want to
 	display them, so count them off */
-	mem->pixels_mem_used =
-	  proportionality(mem->mem_used, mem->mem_total, conf->bar_length);
+	ceiled = 0;
+	total  = 0;
 
-	mem->pixels_mem_free =
-	  proportionality(mem->mem_free, mem->mem_total, conf->bar_length);
+	mem->pixels_mem_used =
+	  proportionality(mem->mem_used, mem->mem_total, conf->bar_length,
+	                  &ceiled);
+	total += mem->pixels_mem_used;
 
 	mem->pixels_mem_buffers =
-	  proportionality(mem->buffers, mem->mem_total, conf->bar_length);
+	  proportionality(mem->buffers, mem->mem_total, conf->bar_length,
+	                  &ceiled);
+	total += mem->pixels_mem_buffers;
 
 	mem->pixels_mem_cached =
-	  proportionality(mem->cached, mem->mem_total, conf->bar_length);
+	  proportionality(mem->cached, mem->mem_total, conf->bar_length,
+	                  &ceiled);
+	total += mem->pixels_mem_cached;
+
+/*	mem->pixels_mem_free =
+	  proportionality(mem->mem_free, mem->mem_total, conf->bar_length,
+	                  &ceiled);
+	*/
+	mem->pixels_mem_free = conf->bar_length - total - 1;
+	/* XXX FIXME: This IS crap... */
 }
+
 
 void
 work_swap(struct meminfo *mem, struct conf_info *conf)
 {
+	mem->swap_used = mem->swap_total - mem->swap_free;
+
 	mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
 	                        mem->swap_total - 1;
 	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free -
@@ -209,43 +229,39 @@ work_swap(struct meminfo *mem, struct conf_info *conf)
 void
 display_meminfo(struct meminfo *mem, struct conf_info *conf)
 {
-	int i;
 
 	/* DOING THE "RAM" FIRST */
-	fputs(MEM_TAG" ["COLOR_USED, stdout);
-	i = mem->pixels_mem_used; //need to keep mem->pixels
-	while(i-->0)
-		putchar(CHAR_USED);
+	fputs(MEM_TAG"[", stdout);
+	display_pixel(mem->pixels_mem_used, CHAR_USED, COLOR_USED);
+	display_pixel(mem->pixels_mem_buffers, CHAR_BUFFERS, COLOR_BUFFERS);
+	display_pixel(mem->pixels_mem_cached, CHAR_CACHED, COLOR_CACHED);
+	display_pixel(mem->pixels_mem_free, CHAR_FREE, COLOR_FREE);
+	fputs("]\n", stdout);
 
-	fputs(COLOR_BUFFERS, stdout);
-	i = mem->pixels_mem_buffers;
-	while(i-->0)
-		putchar(CHAR_BUFFERS);
+	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->mem_used, "Kb");
+	printf("B: "COLOR_BUFFERS"%d"COLOR_NORMAL"%s, ", mem->buffers, "Kb");
+	printf("C: "COLOR_CACHED"%d"COLOR_NORMAL"%s, ", mem->cached, "Kb");
+	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->mem_free, "Kb");
+//		mem->mem_used, mem->buffers, mem->cached, mem->mem_free);
 
-	fputs(COLOR_CACHED, stdout);
-	i = mem->pixels_mem_cached;
-	while(i-->0)
-		putchar(CHAR_CACHED);
+	fputs(SWAP_TAG"[", stdout);
+	display_pixel(mem->pixels_swap_used, CHAR_USED, COLOR_USED);
+	display_pixel(mem->pixels_swap_free, CHAR_FREE, COLOR_FREE);
+	fputs("]\n", stdout);
+	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->swap_used, "Kb");
+	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->swap_free, "Kb");
 
-	fputs(COLOR_FREE, stdout);
-	i = mem->pixels_mem_free;
-	while(i-->0)
-		putchar(CHAR_FREE);
-	fputs(COLOR_NORMAL "]\n", stdout);
-
-
-	/* AND THEN SWAP */
-	fputs(SWAP_TAG" ["COLOR_USED, stdout);
-	i = mem->pixels_swap_used;
-	while(i-->0)
-		putchar(CHAR_USED);
-	fputs(COLOR_FREE, stdout);
-	i = mem->pixels_swap_free;
-	while(i-->0)
-		putchar(CHAR_FREE);
-
-	fputs(COLOR_NORMAL "]\n", stdout);
 }
+
+void
+display_pixel(int times, char pixel, char *color)
+{
+	fputs(color, stdout);
+	while(times-->0)
+		putchar(pixel);
+	fputs(COLOR_NORMAL, stdout);
+}
+
 
 void
 print_usage(char **argv)
@@ -323,19 +339,20 @@ convert_string_to_lower(char *s)
 }
 
 int
-proportionality(int have, int total, int ratio)
+proportionality(int have, int total, int ratio, int *ceiled)
 {
 	double n;
 	int o;
 
 	n = ((double)have * (double)(ratio))/((double)total);
 	o = (int)n;
-	printf("%d, %lf", o, n);
+//	printf("%d, %lf", o, n);
 	n -= o;
-	if(n >= 0.7) {
-		printf("I");
+	if(n >= 0.5 && !(*ceiled)) {
+//		printf("I");
 		o++;
+		*ceiled = 1;
 	}
-	putchar('\n');
+//	putchar('\n');
 	return o;
 }

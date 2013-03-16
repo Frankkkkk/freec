@@ -23,6 +23,8 @@
 #define CHAR_CACHED  'c'
 #define CHAR_FREE    'f'
 
+#define BAR_LEN      30
+
 
 
 /* You should not need to touch below */
@@ -60,7 +62,7 @@ struct meminfo
 {
 	//raw data - in kB !
 	//defines from /proc/meminfo
-#define MEM_TAG "Mem.:"
+#define MEM_TAG "Mem.: "
 #define FREEC_MEM_TOTAL "memtotal:"
 	unsigned int mem_total;
 #define FREEC_MEM_FREE "memfree:"
@@ -72,18 +74,21 @@ struct meminfo
 #define FREEC_CACHED "cached:"
 	unsigned int cached;
 
-	int pixels_mem_used;
-	int pixels_mem_free;
-	int pixels_mem_buffers;
-	int pixels_mem_cached;
-#define SWAP_TAG "Swap:"
+	unsigned int pixels_mem_used;
+	unsigned int pixels_mem_free;
+	unsigned int pixels_mem_buffers;
+	unsigned int pixels_mem_cached;
+
+#define SWAP_TAG "Swap: "
 #define FREEC_SWAP_TOTAL "swaptotal:"
 	unsigned int swap_total;
 #define FREEC_SWAP_FREE "swapfree:"
 	unsigned int swap_free;
 
-	int pixels_swap_used;
-	int pixels_swap_free;
+	unsigned int swap_used;
+
+	unsigned int pixels_swap_used;
+	unsigned int pixels_swap_free;
 
 };
 
@@ -112,6 +117,12 @@ void
 get_tty_info(struct conf_info *conf);
 
 void
+display_pixel(int times, char pixel, char *color);
+
+void
+print_usage(char **argv);
+
+void
 explode_line(char *buffer, char *tag, char *value, char *unit);
 
 void
@@ -120,9 +131,6 @@ insert_data(char *value, char *unit, unsigned int *where);
 void
 convert_string_to_lower(char *s);
 
-void
-print_usage(char **argv);
-
 int
-proportionality(int have, int total, int ratio);
+proportionality(int have, int total, int ratio, int *ceiled);
 #endif
