@@ -37,7 +37,7 @@ main(int argc, char **argv)
 		printf("swap_free:  %u\n", memory_info.swap_free);
 		*/
 		get_tty_info(&conf);
-		conf.bar_length = conf.tty_width - 20;
+		conf.bar_length = conf.tty_width - 10;
 		work_meminfo(&memory_info, &conf);
 		display_meminfo(&memory_info, &conf);
 
