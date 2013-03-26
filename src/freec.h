@@ -48,7 +48,7 @@ struct conf_info
 	char SI_unit; /* si/S - 1, (0) */
 	char humanize; /* h - (1), 0 */
 	char colorize; /* nocolor/C - (1), 0 */
-	int seconds; /* default 1 */
+	unsigned int seconds; /* default 1 */
 	int count_times; /* default 1 :p */
 
 	/* and TTYINFO */
