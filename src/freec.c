@@ -70,7 +70,6 @@ void
 get_opts(int argc, char **argv, struct conf_info *conf)
 {
 	int opt, option_index;
-	option_index = 0;
 
 	static struct option long_options[] ={
 		{"bytes", no_argument, 0, 'b'},
@@ -88,6 +87,8 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 		{0, 0, 0, 0}
 	};
 	const char *opts = "bkmgTSCsc:?h";
+
+	option_index = 0;
 
 	while((opt = getopt_long(argc, argv, opts, long_options,
 	          &option_index)) != -1) {
