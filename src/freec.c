@@ -120,14 +120,14 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 			errno = 0; /* reset errno for error checking below */
 		conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
 		if (errno == ERANGE) /* TODO return on error? */
-			(void)fprintf(stderr, "Value conversion failed "
+			fprintf(stderr, "Value conversion failed "
 				      "when treating -s option\n");
 			break;
 		case 'c': /* count times */
 			errno = 0; /* reset errno for error checking below */
 			conf->count_times= (int)strtol(optarg, NULL, 10);
 			if (errno == ERANGE) /* TODO return on error? */
-				(void)fprintf(stderr, "Value conversion failed "
+				fprintf(stderr, "Value conversion failed "
 					      "when treating -c option\n");
 			break;
 		case 'h': /* fallthrough for help */
@@ -336,7 +336,7 @@ insert_data(char *value, char *unit, unsigned int *where)
 		errno = 0; /* reset errno for error checking below */
 		*where = (unsigned int)strtoul(value, NULL, 10);
 		if (errno == ERANGE) /* TODO return on error? */
-			(void)fprintf(stderr, "Value conversion failed\n");
+			fprintf(stderr, "Value conversion failed\n");
 	}
 	else /* TODO, but should not happen */
 		printf("ERROR in insert_data");
