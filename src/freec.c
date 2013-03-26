@@ -46,7 +46,7 @@ main(int argc, char **argv)
 			sleep(conf.seconds);
 	}
 
-	//free everithing if needed
+	/* free everithing if needed */
 
 	return(EXIT_SUCCESS);
 }
@@ -61,7 +61,7 @@ conf_default_flags(struct conf_info *conf)
 	conf->seconds     = 1;
 	conf->count_times = 1;
 	conf->is_a_tty    = 1;
-	conf->tty_width   = 80; //FIXME
+	conf->tty_width   = 80; /* FIXME */
 	conf->bar_length  = BAR_LEN;
 }
 
@@ -78,8 +78,8 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 		{"mega", no_argument, 0, 'm'},
 		{"giga", no_argument, 0, 'g'},
 		{"tera", no_argument, 0, 'T'},
-		//{"count", no_argument, 0, 'T'}, //TODO count
-		//{"seconds", no_argument, 0, 's'}, //TODO seconds
+		/* {"count", no_argument, 0, 'T'}, //TODO count */
+		/* {"seconds", no_argument, 0, 's'}, //TODO seconds */
 		{"si", no_argument, 0, 'S'},
 		{"help", no_argument, 0, 'H'},
 		{"nocolor", no_argument, 0, 'C'},
@@ -92,35 +92,35 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 	while((opt = getopt_long(argc, argv, opts, long_options,
 	          &option_index)) != -1) {
 		switch(opt) {
-			case 'b': //Bytes
+			case 'b': /* Bytes */
 				conf->size_unit = BYTES;
 				break;
-			case 'k': //Kilos
+			case 'k': /* Kilos */
 				conf->size_unit = KILOS;
 				break;
-			case 'm': //Megas
+			case 'm': /* Megas */
 				conf->size_unit = MEGAS;
 				break;
-			case 'g': //Gigas
+			case 'g': /* Gigas */
 				conf->size_unit = GIGAS;
 				break;
-			case 'T': //Teras
+			case 'T': /* Teras */
 				conf->size_unit = TERAS;
 				break;
-			case 'S': //SI units
+			case 'S': /* SI units */
 				conf->SI_unit = 1;
 				break;
-			case 'C': //do not colorize
+			case 'C': /* do not colorize */
 				conf->colorize = 0;
 				break;
-			case 's': //seconds
+			case 's': /* seconds */
 				conf->seconds = atoi(optarg);
 				break;
-			case 'c': //count times
+			case 'c': /* count times */
 				conf->count_times= atoi(optarg);
 				break;
-			case 'h': //fallthrough for help
-			case '?': //same
+			case 'h': /* fallthrough for help */
+			case '?': /* same */
 			default:
 				print_usage(argv);
 				break;
@@ -134,7 +134,7 @@ get_meminfo(struct meminfo *mem_info)
 {
 	FILE *meminfo_file;
 	char buffer[200];
-	char tag[200], value[200], unit[200]; //yep, be sure
+	char tag[200], value[200], unit[200]; /* yep, be sure */
 
 	if((meminfo_file = fopen(MEMINFO_FILE, "r")) == NULL)
 	{
@@ -180,11 +180,11 @@ void
 work_central(struct meminfo *mem, struct conf_info *conf)
 {
 	int total;
-	int ceiled; //ceil the first time only !
+	int ceiled; /* ceil the first time only ! */
 	mem->mem_used = mem->mem_total -
 	                mem->mem_free -
 	                mem->buffers -
-	                mem->cached; //FIXME - I was tired...
+	                mem->cached; /* FIXME - I was tired... */
 	/*Well, theoreticaly, buffers and cache are "memused", but we want to
 	display them, so count them off */
 	ceiled = 0;
@@ -222,7 +222,7 @@ work_swap(struct meminfo *mem, struct conf_info *conf)
 	mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
 	                        mem->swap_total - 1;
 	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free -
-	                        1; //hahaha, dirty
+	                        1; /* hahaha, dirty */
 }
 
 
@@ -242,7 +242,7 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	printf("B: "COLOR_BUFFERS"%d"COLOR_NORMAL"%s, ", mem->buffers, "Kb");
 	printf("C: "COLOR_CACHED"%d"COLOR_NORMAL"%s, ", mem->cached, "Kb");
 	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->mem_free, "Kb");
-//		mem->mem_used, mem->buffers, mem->cached, mem->mem_free);
+/*		mem->mem_used, mem->buffers, mem->cached, mem->mem_free); */
 
 	fputs(SWAP_TAG"[", stdout);
 	display_pixel(mem->pixels_swap_used, CHAR_USED, COLOR_USED);
@@ -324,7 +324,7 @@ insert_data(char *value, char *unit, unsigned int *where)
 	if(strcmp(unit, PARSE_KILO_BYTES_UNIT)) {
 		*where = atoi(value);
 	}
-	else //TODO, but should not happen
+	else /* TODO, but should not happen */
 		printf("ERROR in insert_data");
 }
 
@@ -346,13 +346,13 @@ proportionality(int have, int total, int ratio, int *ceiled)
 
 	n = ((double)have * (double)(ratio))/((double)total);
 	o = (int)n;
-//	printf("%d, %lf", o, n);
+/*	printf("%d, %lf", o, n); */
 	n -= o;
 	if(n >= 0.5 && !(*ceiled)) {
-//		printf("I");
+/*		printf("I"); */
 		o++;
 		*ceiled = 1;
 	}
-//	putchar('\n');
+/*	putchar('\n'); */
 	return o;
 }
