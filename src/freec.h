@@ -53,9 +53,9 @@ struct conf_info
 
 	/* and TTYINFO */
 	int is_a_tty;
-	int tty_width;
+	unsigned int tty_width;
 
-	int bar_length;
+	unsigned int bar_length;
 };
 
 struct meminfo
@@ -117,7 +117,7 @@ void
 get_tty_info(struct conf_info *conf);
 
 void
-display_pixel(int times, char pixel, char *color);
+display_pixel(unsigned int times, char pixel, char *color);
 
 void
 print_usage(char **argv);
@@ -131,6 +131,7 @@ insert_data(char *value, char *unit, unsigned int *where);
 void
 convert_string_to_lower(char *s);
 
-int
-proportionality(int have, int total, int ratio, int *ceiled);
+unsigned int
+proportionality(unsigned int have, unsigned int total, unsigned int ratio,
+		int *ceiled);
 #endif

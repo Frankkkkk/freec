@@ -117,10 +117,10 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 			break;
 		case 's': /* seconds */
 			errno = 0; /* reset errno for error checking below */
-			conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
-			if (errno == ERANGE) /* TODO return on error? */
-				(void)fprintf(stderr, "Value conversion failed "
-					      "when treating -s option\n");
+		conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
+		if (errno == ERANGE) /* TODO return on error? */
+			(void)fprintf(stderr, "Value conversion failed "
+				      "when treating -s option\n");
 			break;
 		case 'c': /* count times */
 			errno = 0; /* reset errno for error checking below */
@@ -189,7 +189,7 @@ work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 void
 work_central(struct meminfo *mem, struct conf_info *conf)
 {
-	int total;
+	unsigned int total;
 	int ceiled; /* ceil the first time only ! */
 	mem->mem_used = mem->mem_total -
 	                mem->mem_free -
@@ -264,7 +264,7 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 }
 
 void
-display_pixel(int times, char pixel, char *color)
+display_pixel(unsigned int times, char pixel, char *color)
 {
 	fputs(color, stdout);
 	while(times-->0)
@@ -332,7 +332,10 @@ void
 insert_data(char *value, char *unit, unsigned int *where)
 {
 	if(strcmp(unit, PARSE_KILO_BYTES_UNIT)) {
-		*where = atoi(value);
+		errno = 0; /* reset errno for error checking below */
+		*where = (unsigned int)strtoul(value, NULL, 10);
+		if (errno == ERANGE) /* TODO return on error? */
+			(void)fprintf(stderr, "Value conversion failed\n");
 	}
 	else /* TODO, but should not happen */
 		printf("ERROR in insert_data");
@@ -348,14 +351,15 @@ convert_string_to_lower(char *s)
 	}
 }
 
-int
-proportionality(int have, int total, int ratio, int *ceiled)
+unsigned int
+proportionality(unsigned int have, unsigned int total, unsigned int ratio,
+		int *ceiled)
 {
 	double n;
-	int o;
+	unsigned int o;
 
 	n = ((double)have * (double)(ratio))/((double)total);
-	o = (int)n;
+	o = (unsigned int)n;
 /*	printf("%d, %lf", o, n); */
 	n -= o;
 	if(n >= 0.5 && !(*ceiled)) {
