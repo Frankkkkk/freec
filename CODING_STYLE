@@ -1,0 +1,6 @@
+Coding style:
+	* No pedantic
+	* No casts to void
+	* C99 comments allowed
+
+	That's all folks ;)
