@@ -39,7 +39,7 @@ main(int argc, char **argv)
 		printf("swap_free:  %u\n", memory_info.swap_free);
 		*/
 		get_tty_info(&conf);
-		conf.bar_length = conf.tty_width - 10;
+		conf.bar_length = conf.tty_width - 10; /* FIXME */
 		work_meminfo(&memory_info, &conf);
 		display_meminfo(&memory_info, &conf);
 
@@ -118,10 +118,10 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 			break;
 		case 's': /* seconds */
 			errno = 0; /* reset errno for error checking below */
-		conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
-		if (errno == ERANGE) /* TODO return on error? */
-			fprintf(stderr, "Value conversion failed "
-				      "when treating -s option\n");
+			conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
+			if (errno == ERANGE) /* TODO return on error? */
+				fprintf(stderr, "Value conversion failed "
+				         "when treating -s option\n");
 			break;
 		case 'c': /* count times */
 			errno = 0; /* reset errno for error checking below */
@@ -351,7 +351,7 @@ convert_string_to_lower(char *s)
 
 unsigned int
 proportionality(unsigned int have, unsigned int total, unsigned int ratio,
-		int *ceiled)
+                int *ceiled)
 {
 	double n;
 	unsigned int o;
