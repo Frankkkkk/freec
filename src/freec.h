@@ -37,21 +37,21 @@
 
 #define MEMINFO_FILE "/proc/meminfo"
 
-//for parsing MEMINFO_FILE
+/* for parsing MEMINFO_FILE */
 #define PARSE_BYTES_UNIT      "b"
 #define PARSE_KILO_BYTES_UNIT "kb"
 #define PARSE_MEGA_BYTES_UNIT "mb"
 #define PARSE_GIGA_BYTES_UNIT "gb"
 struct conf_info 
 {
-	char size_unit; //b, m, g, t
-	char SI_unit; //si/S - 1, (0)
-	char humanize; //h - (1), 0
-	char colorize; //nocolor/C - (1), 0
-	int seconds; //default 1 
-	int count_times; //default 1 :p
+	char size_unit; /* b, m, g, t */
+	char SI_unit; /* si/S - 1, (0) */
+	char humanize; /* h - (1), 0 */
+	char colorize; /* nocolor/C - (1), 0 */
+	int seconds; /* default 1 */
+	int count_times; /* default 1 :p */
 
-	//and TTYINFO
+	/* and TTYINFO */
 	int is_a_tty;
 	int tty_width;
 
@@ -60,8 +60,8 @@ struct conf_info
 
 struct meminfo
 {
-	//raw data - in kB !
-	//defines from /proc/meminfo
+	/* raw data - in kB ! */
+	/* defines from /proc/meminfo */
 #define MEM_TAG "Mem.: "
 #define FREEC_MEM_TOTAL "memtotal:"
 	unsigned int mem_total;
