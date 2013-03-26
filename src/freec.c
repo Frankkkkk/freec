@@ -15,6 +15,7 @@
 #include <getopt.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "freec.h"
 
@@ -344,11 +345,8 @@ insert_data(char *value, char *unit, unsigned int *where)
 void
 convert_string_to_lower(char *s)
 {
-	while(*s) {
-		if(*s >= 'A' && *s <= 'Z')
-			*s += 'a'-'A';
-		s++;
-	}
+	for (; *s; ++s)
+		*s = (char)tolower(*s);
 }
 
 unsigned int
