@@ -11,6 +11,7 @@
 #include <stdio.h>
 
 #include <unistd.h>
+#include <errno.h>
 #include <getopt.h>
 #include <sys/ioctl.h>
 #include <string.h>
@@ -93,38 +94,46 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 	while((opt = getopt_long(argc, argv, opts, long_options,
 	          &option_index)) != -1) {
 		switch(opt) {
-			case 'b': /* Bytes */
-				conf->size_unit = BYTES;
-				break;
-			case 'k': /* Kilos */
-				conf->size_unit = KILOS;
-				break;
-			case 'm': /* Megas */
-				conf->size_unit = MEGAS;
-				break;
-			case 'g': /* Gigas */
-				conf->size_unit = GIGAS;
-				break;
-			case 'T': /* Teras */
-				conf->size_unit = TERAS;
-				break;
-			case 'S': /* SI units */
-				conf->SI_unit = 1;
-				break;
-			case 'C': /* do not colorize */
-				conf->colorize = 0;
-				break;
-			case 's': /* seconds */
-				conf->seconds = atoi(optarg);
-				break;
-			case 'c': /* count times */
-				conf->count_times= atoi(optarg);
-				break;
-			case 'h': /* fallthrough for help */
-			case '?': /* same */
-			default:
-				print_usage(argv);
-				break;
+		case 'b': /* Bytes */
+			conf->size_unit = BYTES;
+			break;
+		case 'k': /* Kilos */
+			conf->size_unit = KILOS;
+			break;
+		case 'm': /* Megas */
+			conf->size_unit = MEGAS;
+			break;
+		case 'g': /* Gigas */
+			conf->size_unit = GIGAS;
+			break;
+		case 'T': /* Teras */
+			conf->size_unit = TERAS;
+			break;
+		case 'S': /* SI units */
+			conf->SI_unit = 1;
+			break;
+		case 'C': /* do not colorize */
+			conf->colorize = 0;
+			break;
+		case 's': /* seconds */
+			errno = 0; /* reset errno for error checking below */
+			conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
+			if (errno == ERANGE) /* TODO return on error? */
+				(void)fprintf(stderr, "Value conversion failed "
+					      "when treating -s option\n");
+			break;
+		case 'c': /* count times */
+			errno = 0; /* reset errno for error checking below */
+			conf->count_times= (int)strtol(optarg, NULL, 10);
+			if (errno == ERANGE) /* TODO return on error? */
+				(void)fprintf(stderr, "Value conversion failed "
+					      "when treating -c option\n");
+			break;
+		case 'h': /* fallthrough for help */
+		case '?': /* same */
+		default:
+			print_usage(argv);
+			break;
 		}
 	}
 }
