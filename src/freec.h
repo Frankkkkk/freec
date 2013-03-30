@@ -28,11 +28,11 @@
 
 
 /* You should not need to touch below */
-#define BYTES 0
-#define KILOS 3
-#define MEGAS 6
-#define GIGAS 9
-#define TERAS 12
+#define BYTES -1 /* division coef. */
+#define KILOS 0
+#define MEGAS 1
+#define GIGAS 2
+#define TERAS 3
 
 
 #define MEMINFO_FILE "/proc/meminfo"
@@ -64,6 +64,7 @@ struct meminfo
 	/* defines from /proc/meminfo */
 #define MEM_TAG "Mem.: "
 #define FREEC_MEM_TOTAL "memtotal:"
+/* FIXME: unsigned long long ?? */
 	unsigned int mem_total;
 #define FREEC_MEM_FREE "memfree:"
 	unsigned int mem_free;
@@ -118,6 +119,9 @@ get_tty_info(struct conf_info *conf);
 
 void
 display_pixel(unsigned int times, char pixel, char *color);
+
+void
+display_unit(unsigned int mem, struct conf_info *conf);
 
 void
 print_usage(char **argv);

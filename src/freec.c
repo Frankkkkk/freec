@@ -183,8 +183,8 @@ void
 work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 {
 	work_central(mem_info, conf);
-	/* TODO: Check if has swap !!!! */
-	work_swap(mem_info, conf);
+
+		work_swap(mem_info, conf);
 }
 
 void
@@ -228,12 +228,18 @@ work_central(struct meminfo *mem, struct conf_info *conf)
 void
 work_swap(struct meminfo *mem, struct conf_info *conf)
 {
-	mem->swap_used = mem->swap_total - mem->swap_free;
+	if(mem->swap_free == 0 && mem->swap_free == 0) {
+		mem->pixels_swap_free = 0;
+		mem->pixels_swap_used = 0;
+	}
+	else {
+		mem->swap_used = mem->swap_total - mem->swap_free;
 
-	mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
-	                        mem->swap_total - 1;
-	mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free -
-	                        1; /* hahaha, dirty */
+		mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
+		                         mem->swap_total - 1;
+		mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free - 1;
+		/* hahaha, dirty */
+	}
 }
 
 
@@ -249,18 +255,37 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	display_pixel(mem->pixels_mem_free, CHAR_FREE, COLOR_FREE);
 	fputs("]\n", stdout);
 
+	/*
 	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->mem_used, "Kb");
 	printf("B: "COLOR_BUFFERS"%d"COLOR_NORMAL"%s, ", mem->buffers, "Kb");
 	printf("C: "COLOR_CACHED"%d"COLOR_NORMAL"%s, ", mem->cached, "Kb");
 	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->mem_free, "Kb");
+	*/
+	fputs(COLOR_USED"U: ", stdout);
+	display_unit(mem->mem_used, conf);
+	fputs(COLOR_NORMAL", "COLOR_BUFFERS"B: ", stdout);
+	display_unit(mem->buffers, conf);
+	fputs(COLOR_NORMAL", "COLOR_CACHED"C: ", stdout);
+	display_unit(mem->cached, conf);
+	fputs(COLOR_NORMAL", "COLOR_FREE"F: ", stdout);
+	display_unit(mem->mem_free, conf);
+	fputs(" "COLOR_NORMAL, stdout);
+	putchar('\n');
+
 /*		mem->mem_used, mem->buffers, mem->cached, mem->mem_free); */
 
 	fputs(SWAP_TAG"[", stdout);
 	display_pixel(mem->pixels_swap_used, CHAR_USED, COLOR_USED);
 	display_pixel(mem->pixels_swap_free, CHAR_FREE, COLOR_FREE);
 	fputs("]\n", stdout);
+	/*
 	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->swap_used, "Kb");
 	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->swap_free, "Kb");
+	*/
+	fputs("U: ", stdout);
+	display_unit(mem->swap_used, conf);
+	fputs("F: ", stdout);
+	display_unit(mem->swap_free, conf);
 
 }
 
@@ -273,6 +298,69 @@ display_pixel(unsigned int times, char pixel, char *color)
 	fputs(COLOR_NORMAL, stdout);
 }
 
+void
+display_unit(unsigned int mem, struct conf_info *conf)
+{
+	unsigned int converted;
+	unsigned int times_to_div;
+	char *unit;
+
+	times_to_div = conf->size_unit;
+	converted = mem;
+
+	if(conf->SI_unit) {
+		while(times_to_div > 0) {
+			mem /= 1000;
+			times_to_div--;
+		}
+
+		switch(conf->size_unit) {
+		case KILOS:
+			unit = "KB";
+			break;
+		case MEGAS:
+			unit = "MB";
+			break;
+		case GIGAS:
+			unit = "GB";
+			break;
+		case TERAS:
+			unit = "TB";
+			break;
+		default:
+			unit = "NaN";
+			fprintf(stderr, "Error with unit @ display_unit!\n");
+			break;
+		}
+	}
+	else {
+		while(times_to_div > 0) {
+			mem /= 1024;
+			times_to_div--;
+		}
+
+		switch(conf->size_unit) {
+		case KILOS:
+			unit = "KiB";
+			break;
+		case MEGAS:
+			unit = "MiB";
+			break;
+		case GIGAS:
+			unit = "GiB";
+			break;
+		case TERAS:
+			unit = "TiB";
+			break;
+		default:
+			unit = "NaN";
+			fprintf(stderr, "Error with unit @ display_unit!\n");
+			break;
+		}
+	}
+
+	printf("%d%s", mem, unit);
+}
 
 void
 print_usage(char **argv)
@@ -280,6 +368,7 @@ print_usage(char **argv)
 	fprintf(stderr, "Usage: %s blah blah\n", argv[0]);
 	exit(EXIT_FAILURE);
 }
+
 
 /* UTILS */
 
