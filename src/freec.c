@@ -43,7 +43,8 @@ main(int argc, char **argv)
 		work_meminfo(&memory_info, &conf);
 		display_meminfo(&memory_info, &conf);
 
-		conf.count_times--;
+		if(conf.count_times > 0) /* -c -1 -> BUG FIXME */
+			conf.count_times--;
 		if(conf.count_times)
 			sleep(conf.seconds);
 	}
