@@ -287,6 +287,7 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	display_unit(mem->swap_used, conf);
 	fputs("F: ", stdout);
 	display_unit(mem->swap_free, conf);
+	putchar('\n');
 
 }
 
