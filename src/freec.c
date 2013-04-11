@@ -185,7 +185,7 @@ work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
 {
 	work_central(mem_info, conf);
 
-		work_swap(mem_info, conf);
+	work_swap(mem_info, conf);
 }
 
 void

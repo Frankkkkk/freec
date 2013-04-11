@@ -1,5 +1,5 @@
 CC ?= clang
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -g3
 LDFLAGS = 
 SRCDIR = src/
 
