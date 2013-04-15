@@ -89,7 +89,7 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 		{"help", no_argument, 0, '?'},
 		{0, 0, 0, 0}
 	};
-	const char *opts = "bkmgTSCsc:?h";
+	const char *opts = "bkmgTSCs:c:?h";
 
 	option_index = 0;
 
