@@ -2,5 +2,6 @@ Coding style:
 	* No pedantic
 	* No casts to void
 	* C99 comments allowed
+	* No git patches with usernames starting with Ro (:p)
 
 	That's all folks ;)

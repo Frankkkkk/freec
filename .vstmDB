@@ -4,4 +4,4 @@
 @L do the help
 @L do the manpage
 Max width ?
--c10 -s2 wont work
+Do not display swap if no mem for it
