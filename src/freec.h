@@ -31,7 +31,7 @@
 /* You should not need to touch below */
 /**************************************/
 
-#define FREEC_VERSION "0.1337"
+#define FREEC_VERSION "1.0"
 
 #define BYTES -1 /* division coef. */
 #define KILOS 0
@@ -153,7 +153,20 @@ proportionality(unsigned int have, unsigned int total, unsigned int ratio,
                 int *ceiled);
 #endif
 
-/* You've found it ! */
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* You've found it ! {{{ */
 #define egg {"lgbt", no_argument, 0, 'E'}
 #define E_RED     "\033[0;31m"
 #define E_YELLOW  "\033[0;33m"
@@ -195,6 +208,6 @@ proportionality(unsigned int have, unsigned int total, unsigned int ratio,
 	fputs("\n", stdout);\
 	} while (0);
 
-/*
+/* }}}
 
 kilroy was not here :(                                                        */

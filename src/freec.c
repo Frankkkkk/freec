@@ -33,7 +33,7 @@ main(int argc, char **argv)
 	while(conf.count_times) {
 		get_meminfo(&memory_info);
 		get_tty_info();
-		conf.bar_length = conf.tty_width - 10; /* FIXME */
+		conf.bar_length = conf.tty_width - 10;
 		work_meminfo(&memory_info);
 		display_meminfo(&memory_info);
 
@@ -42,8 +42,6 @@ main(int argc, char **argv)
 		if(conf.count_times)
 			sleep(conf.seconds);
 	}
-
-	/* free everithing if needed */
 
 	return(EXIT_SUCCESS);
 }
@@ -566,7 +564,7 @@ display_help(void)
 	"\n" \
 	"--byte(s) -b               Show units in bytes\n" \
 	"--kilo(s) -k               Show units in kilos\n" \
-	"--mega(s) -m               Show units in megass\n" \
+	"--mega(s) -m               Show units in megas - default\n" \
 	"--giga(s) -g               Show units in gigas\n" \
 	"--tera(s) -T               Show units in teras !\n" \
 	"--human(ize) -h            Humanize the result\n" \

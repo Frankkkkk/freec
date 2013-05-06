@@ -1,0 +1,93 @@
+.\" Manpage for freec.
+.TH frecc 1 2013-05-06 "1.0" "freec man page"
+.SH NAME
+.B freec 
+\- Display memory usage using graphs and nice colors
+
+.SH SYNOPSIS
+.B freec
+.RI [options]
+
+.SH DESCRIPTION
+.B freec(1)
+is like free(1) except that it shows the memory usage (used, cached, buffered and free mem) using
+nice colors and ascii-graphs.
+
+.SH OPTIONS
+
+.TP
+\fB\-b\fR, \fB\-\-byte\fR, \fB\-\-bytes\fR
+Show units in bytes.
+.TP
+\fB\-k\fR, \fB\-\-kilo\fR, \fB\-\-kilos\fR
+Show units in kilos.
+.TP
+\fB\-m\fR, \fB\-\-mega\fR, \fB\-\-megas\fR
+Show units in megas. This is the default.
+.TP
+\fB\-g\fR, \fB\-\-giga\fR, \fB\-\-gigas\fR
+Show units in gigas.
+.TP
+\fB\-T\fR, \fB\-\-tera\fR, \fB\-\-teras\fR
+Show units in teras !
+
+.TP
+\fB\-h\fR, \fB\-\-human\fR, \fB\-\-humanize\fR
+Humanize the result: take the biggest unit for each field.
+
+.TP
+\fB\-c\fR, \fB\-\-count\fR \fIcount\fR
+Display the result
+.I count
+times.
+
+
+.TP
+\fB\-s\fR, \fB\-\-seconds\fR, \fB\-\-interval\fR \fIsecs\fR
+Wait
+.I secs
+seconds between the
+.I
+count results.
+
+
+.TP
+\fB\-S\fR, \fB\-\-si\fR
+Display the result in SI units (base 10).
+
+
+.TP
+\fB\-C\fR, \fB\-\-nocolor\fR, \fB\-\-no-color\fR
+Display the result without using colors.
+
+
+.TP
+\fB\-G\fR, \fB\-\-nograph\fR, \fB\-\-no-graph\fR
+Display the result without the usage graph.
+
+
+.TP
+\fB\-w\fR, \fB\-\-noswap\fR, \fB\-\-no-swap\fR
+Do not display the swap meminfo.
+
+.TP
+\fB\-V\fR, \fB\-v\fR
+Displays freec's version
+
+.PD
+.SH FILES
+.TP
+/proc/meminfo
+memory information
+
+.PD
+.SH "SEE ALSO"
+.BR free(1),
+.BR dfc(1),
+.BR ccze(1)
+
+.SH AUTHORS
+Frank Villaro-Dixon (freec@vi-di.fr)
+
+.SH BUGS
+Please send bug reports to the email address mentioned above ;).

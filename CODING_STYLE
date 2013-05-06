@@ -3,5 +3,6 @@ Coding style:
 	* No casts to void
 	* C99 comments allowed
 	* No git patches with usernames starting with Ro (:p)
-
 	That's all folks ;)
+
+No, seriously, just one thing: use tabs, not spaces, with thought ;)
