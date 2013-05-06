@@ -48,6 +48,7 @@ struct conf_info
 	char SI_unit; /* si/S - 1, (0) */
 	char humanize; /* h - (1), 0 */
 	char colorize; /* nocolor/C - (1), 0 */
+	char no_graph; /* nocolor/C - (1), 0 */
 	unsigned int seconds; /* default 1 */
 	int count_times; /* default 1 :p */
 
@@ -94,37 +95,40 @@ struct meminfo
 };
 
 void
-conf_default_flags(struct conf_info *conf);
+conf_default_flags(void);
 
 void
-get_opts(int argc, char **argv, struct conf_info *conf);
+get_opts(int argc, char **argv);
 
 void
 get_meminfo(struct meminfo *mem_info);
 
 void
-work_meminfo(struct meminfo *mem_info, struct conf_info *conf);
+work_meminfo(struct meminfo *mem_info);
 
 void
-work_central(struct meminfo *mem, struct conf_info *conf);
+work_central(struct meminfo *mem);
 
 void
-work_swap(struct meminfo *mem, struct conf_info *conf);
+work_swap(struct meminfo *mem);
 
 void
-display_meminfo(struct meminfo *mem, struct conf_info *conf);
+display_meminfo(struct meminfo *mem);
 
 void
-get_tty_info(struct conf_info *conf);
+get_tty_info(void);
 
 void
 display_pixel(unsigned int times, char pixel, char *color);
 
 void
-display_unit(unsigned int mem, struct conf_info *conf);
+display_unit(unsigned int mem);
 
 void
 print_usage(char **argv);
+
+void
+display_help(void);
 
 void
 explode_line(char *buffer, char *tag, char *value, char *unit);

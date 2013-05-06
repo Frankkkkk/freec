@@ -19,14 +19,16 @@
 
 #include "freec.h"
 
+/* OKay, that is awefull, but much more simple */
+struct conf_info conf;
+
 int
 main(int argc, char **argv)
 {
-	struct conf_info conf;
 	struct meminfo memory_info;
 
-	conf_default_flags(&conf);
-	get_opts(argc, argv, &conf);
+	conf_default_flags();
+	get_opts(argc, argv);
 
 	while(conf.count_times) {
 		get_meminfo(&memory_info);
@@ -38,10 +40,10 @@ main(int argc, char **argv)
 		printf("swap_total: %u\n", memory_info.swap_total);
 		printf("swap_free:  %u\n", memory_info.swap_free);
 		*/
-		get_tty_info(&conf);
+		get_tty_info();
 		conf.bar_length = conf.tty_width - 10; /* FIXME */
-		work_meminfo(&memory_info, &conf);
-		display_meminfo(&memory_info, &conf);
+		work_meminfo(&memory_info);
+		display_meminfo(&memory_info);
 
 		if(conf.count_times > 0) /* -c -1 -> BUG FIXME */
 			conf.count_times--;
@@ -55,23 +57,24 @@ main(int argc, char **argv)
 }
 
 void
-conf_default_flags(struct conf_info *conf)
-{
-	conf->size_unit   = MEGAS;
-	conf->SI_unit     = 0;
-	conf->humanize    = 1;
-	conf->colorize    = 1;
-	conf->seconds     = 1;
-	conf->count_times = 1;
-	conf->is_a_tty    = 1;
-	conf->tty_width   = 80; /* FIXME */
-	conf->bar_length  = BAR_LEN;
-}
+conf_default_flags(void)
+{ /* {{{ */
+	conf.size_unit   = MEGAS;
+	conf.SI_unit     = 0;
+	conf.humanize    = 1;
+	conf.colorize    = 1;
+	conf.no_graph    = 0;
+	conf.seconds     = 1;
+	conf.count_times = 1;
+	conf.is_a_tty    = 1;
+	conf.tty_width   = 80; /* FIXME */
+	conf.bar_length  = BAR_LEN;
+} /* }}} */
 
 
 void
-get_opts(int argc, char **argv, struct conf_info *conf)
-{
+get_opts(int argc, char **argv)
+{ /* {{{ */
 	int opt, option_index;
 
 	static struct option long_options[] ={
@@ -80,16 +83,18 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 		{"mega", no_argument, 0, 'm'},
 		{"giga", no_argument, 0, 'g'},
 		{"tera", no_argument, 0, 'T'},
-		/* {"count", no_argument, 0, 'T'}, //TODO count */
-		/* {"seconds", no_argument, 0, 's'}, //TODO seconds */
+		{"count", required_argument, 0, 'T'},
+		{"seconds", required_argument, 0, 's'},
 		{"si", no_argument, 0, 'S'},
 		{"help", no_argument, 0, 'H'},
 		{"nocolor", no_argument, 0, 'C'},
 		{"no-color", no_argument, 0, 'C'},
+		{"nograph", no_argument, 0, 'G'},
+		{"no-graph", no_argument, 0, 'G'},
 		{"help", no_argument, 0, '?'},
 		{0, 0, 0, 0}
 	};
-	const char *opts = "bkmgTSCs:c:?h";
+	const char *opts = "bkmgTSCs:c:G?h";
 
 	option_index = 0;
 
@@ -97,53 +102,58 @@ get_opts(int argc, char **argv, struct conf_info *conf)
 	          &option_index)) != -1) {
 		switch(opt) {
 		case 'b': /* Bytes */
-			conf->size_unit = BYTES;
+			conf.size_unit = BYTES;
 			break;
 		case 'k': /* Kilos */
-			conf->size_unit = KILOS;
+			conf.size_unit = KILOS;
 			break;
 		case 'm': /* Megas */
-			conf->size_unit = MEGAS;
+			conf.size_unit = MEGAS;
 			break;
 		case 'g': /* Gigas */
-			conf->size_unit = GIGAS;
+			conf.size_unit = GIGAS;
 			break;
 		case 'T': /* Teras */
-			conf->size_unit = TERAS;
+			conf.size_unit = TERAS;
 			break;
 		case 'S': /* SI units */
-			conf->SI_unit = 1;
+			conf.SI_unit = 1;
 			break;
 		case 'C': /* do not colorize */
-			conf->colorize = 0;
+			conf.colorize = 0;
 			break;
 		case 's': /* seconds */
 			errno = 0; /* reset errno for error checking below */
-			conf->seconds = (unsigned int)strtoul(optarg, NULL, 10);
+			conf.seconds = (unsigned int)strtoul(optarg, NULL, 10);
 			if (errno == ERANGE) /* TODO return on error? */
 				fprintf(stderr, "Value conversion failed "
 				         "when treating -s option\n");
 			break;
 		case 'c': /* count times */
 			errno = 0; /* reset errno for error checking below */
-			conf->count_times= (int)strtol(optarg, NULL, 10);
+			conf.count_times= (int)strtol(optarg, NULL, 10);
 			if (errno == ERANGE) /* TODO return on error? */
 				fprintf(stderr, "Value conversion failed "
 					      "when treating -c option\n");
 			break;
+		case 'G': /* no bar-graph */
+			conf.no_graph = 1;
+			break;
 		case 'h': /* fallthrough for help */
-		case '?': /* same */
+		case '?':
+			display_help();
+			break;
 		default:
 			print_usage(argv);
 			break;
 		}
 	}
-}
+} /* }}} */
 
 
 void
 get_meminfo(struct meminfo *mem_info)
-{
+{ /* {{{ */
 	FILE *meminfo_file;
 	char buffer[200];
 	char tag[200], value[200], unit[200]; /* yep, be sure */
@@ -178,19 +188,19 @@ get_meminfo(struct meminfo *mem_info)
 			insert_data(value, unit, &mem_info->swap_free);
 	}
 	fclose(meminfo_file);
-}
+} /* }}} */
 
 void
-work_meminfo(struct meminfo *mem_info, struct conf_info *conf)
-{
-	work_central(mem_info, conf);
+work_meminfo(struct meminfo *mem_info)
+{ /* {{{ */
+	work_central(mem_info);
 
-	work_swap(mem_info, conf);
-}
+	work_swap(mem_info);
+} /* }}} */
 
 void
-work_central(struct meminfo *mem, struct conf_info *conf)
-{
+work_central(struct meminfo *mem)
+{ /* {{{ */
 	unsigned int total;
 	int ceiled; /* ceil the first time only ! */
 	mem->mem_used = mem->mem_total -
@@ -203,17 +213,17 @@ work_central(struct meminfo *mem, struct conf_info *conf)
 	total  = 0;
 
 	mem->pixels_mem_used =
-	  proportionality(mem->mem_used, mem->mem_total, conf->bar_length,
+	  proportionality(mem->mem_used, mem->mem_total, conf.bar_length,
 	                  &ceiled);
 	total += mem->pixels_mem_used;
 
 	mem->pixels_mem_buffers =
-	  proportionality(mem->buffers, mem->mem_total, conf->bar_length,
+	  proportionality(mem->buffers, mem->mem_total, conf.bar_length,
 	                  &ceiled);
 	total += mem->pixels_mem_buffers;
 
 	mem->pixels_mem_cached =
-	  proportionality(mem->cached, mem->mem_total, conf->bar_length,
+	  proportionality(mem->cached, mem->mem_total, conf.bar_length,
 	                  &ceiled);
 	total += mem->pixels_mem_cached;
 
@@ -221,14 +231,13 @@ work_central(struct meminfo *mem, struct conf_info *conf)
 	  proportionality(mem->mem_free, mem->mem_total, conf->bar_length,
 	                  &ceiled);
 	*/
-	mem->pixels_mem_free = conf->bar_length - total - 1;
+	mem->pixels_mem_free = conf.bar_length - total - 1;
 	/* XXX FIXME: This IS crap... */
-}
-
+} /* }}} */
 
 void
-work_swap(struct meminfo *mem, struct conf_info *conf)
-{
+work_swap(struct meminfo *mem)
+{ /* {{{ */
 	if(mem->swap_free == 0 && mem->swap_free == 0) {
 		mem->pixels_swap_free = 0;
 		mem->pixels_swap_used = 0;
@@ -236,25 +245,27 @@ work_swap(struct meminfo *mem, struct conf_info *conf)
 	else {
 		mem->swap_used = mem->swap_total - mem->swap_free;
 
-		mem->pixels_swap_free = (mem->swap_free * conf->bar_length) /
+		mem->pixels_swap_free = (mem->swap_free * conf.bar_length) /
 		                         mem->swap_total - 1;
-		mem->pixels_swap_used = conf->bar_length - mem->pixels_swap_free - 1;
+		mem->pixels_swap_used = conf.bar_length - mem->pixels_swap_free - 1;
 		/* hahaha, dirty */
 	}
-}
-
+} /* }}} */
 
 void
-display_meminfo(struct meminfo *mem, struct conf_info *conf)
-{
+display_meminfo(struct meminfo *mem)
+{ /* {{{ */
 
 	/* DOING THE "RAM" FIRST */
-	fputs(MEM_TAG"[", stdout);
-	display_pixel(mem->pixels_mem_used, CHAR_USED, COLOR_USED);
-	display_pixel(mem->pixels_mem_buffers, CHAR_BUFFERS, COLOR_BUFFERS);
-	display_pixel(mem->pixels_mem_cached, CHAR_CACHED, COLOR_CACHED);
-	display_pixel(mem->pixels_mem_free, CHAR_FREE, COLOR_FREE);
-	fputs("]\n", stdout);
+
+	if(!conf.no_graph) {
+		fputs(MEM_TAG"[", stdout);
+		display_pixel(mem->pixels_mem_used, CHAR_USED, COLOR_USED);
+		display_pixel(mem->pixels_mem_buffers, CHAR_BUFFERS, COLOR_BUFFERS);
+		display_pixel(mem->pixels_mem_cached, CHAR_CACHED, COLOR_CACHED);
+		display_pixel(mem->pixels_mem_free, CHAR_FREE, COLOR_FREE);
+		fputs("]\n", stdout);
+	}
 
 	/*
 	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->mem_used, "Kb");
@@ -262,61 +273,100 @@ display_meminfo(struct meminfo *mem, struct conf_info *conf)
 	printf("C: "COLOR_CACHED"%d"COLOR_NORMAL"%s, ", mem->cached, "Kb");
 	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->mem_free, "Kb");
 	*/
-	fputs(COLOR_USED"U: ", stdout);
-	display_unit(mem->mem_used, conf);
-	fputs(COLOR_NORMAL", "COLOR_BUFFERS"B: ", stdout);
-	display_unit(mem->buffers, conf);
-	fputs(COLOR_NORMAL", "COLOR_CACHED"C: ", stdout);
-	display_unit(mem->cached, conf);
-	fputs(COLOR_NORMAL", "COLOR_FREE"F: ", stdout);
-	display_unit(mem->mem_free, conf);
-	fputs(" "COLOR_NORMAL, stdout);
+
+	if(conf.colorize)
+		fputs(COLOR_USED"U: ", stdout);
+	else
+		fputs("U: ", stdout);
+
+	display_unit(mem->mem_used);
+
+	if(conf.colorize)
+		fputs(COLOR_NORMAL", "COLOR_BUFFERS"B: ", stdout);
+	else
+		fputs(", B: ", stdout);
+
+	display_unit(mem->buffers);
+
+	if(conf.colorize)
+		fputs(COLOR_NORMAL", "COLOR_CACHED"C: ", stdout);
+	else
+		fputs(", C: ", stdout);
+
+	display_unit(mem->cached);
+
+	if(conf.colorize)
+		fputs(COLOR_NORMAL", "COLOR_FREE"F: ", stdout);
+	else
+		fputs(", F: ", stdout);
+
+	display_unit(mem->mem_free);
+
+	if(conf.colorize)
+		fputs(" "COLOR_NORMAL, stdout);
+	else
+		fputs(" ", stdout);
+
+
+	if(mem->swap_total) {
+		putchar('\n');
+		if(!conf.no_graph) {
+			fputs(SWAP_TAG"[", stdout);
+			display_pixel(mem->pixels_swap_used, CHAR_USED,
+			              COLOR_USED);
+			display_pixel(mem->pixels_swap_free, CHAR_FREE,
+			              COLOR_FREE);
+			fputs("]\n", stdout);
+		}
+
+		if(conf.colorize)
+			fputs(COLOR_USED"U: ", stdout);
+		else
+			fputs("U: ", stdout);
+
+		display_unit(mem->swap_used);
+
+		if(conf.colorize)
+			fputs(COLOR_NORMAL", "COLOR_FREE"F: ", stdout);
+		else
+			fputs(", F: ", stdout);
+
+		display_unit(mem->swap_free);
+	}
+
 	putchar('\n');
 
-/*		mem->mem_used, mem->buffers, mem->cached, mem->mem_free); */
-
-	fputs(SWAP_TAG"[", stdout);
-	display_pixel(mem->pixels_swap_used, CHAR_USED, COLOR_USED);
-	display_pixel(mem->pixels_swap_free, CHAR_FREE, COLOR_FREE);
-	fputs("]\n", stdout);
-	/*
-	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->swap_used, "Kb");
-	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->swap_free, "Kb");
-	*/
-	fputs("U: ", stdout);
-	display_unit(mem->swap_used, conf);
-	fputs("F: ", stdout);
-	display_unit(mem->swap_free, conf);
-	putchar('\n');
-
-}
+} /* }}} */
 
 void
 display_pixel(unsigned int times, char pixel, char *color)
-{
-	fputs(color, stdout);
+{ /* {{{ */
+	if(conf.colorize)
+		fputs(color, stdout);
+
 	while(times-->0)
 		putchar(pixel);
-	fputs(COLOR_NORMAL, stdout);
-}
+	if(conf.colorize)
+		fputs(COLOR_NORMAL, stdout);
+} /* }}} */
 
 void
-display_unit(unsigned int mem, struct conf_info *conf)
-{
+display_unit(unsigned int mem)
+{ /* {{{ */
 	unsigned int converted;
 	unsigned int times_to_div;
 	char *unit;
 
-	times_to_div = conf->size_unit;
+	times_to_div = conf.size_unit;
 	converted = mem;
 
-	if(conf->SI_unit) {
+	if(conf.SI_unit) {
 		while(times_to_div > 0) {
 			mem /= 1000;
 			times_to_div--;
 		}
 
-		switch(conf->size_unit) {
+		switch(conf.size_unit) {
 		case KILOS:
 			unit = "KB";
 			break;
@@ -341,7 +391,7 @@ display_unit(unsigned int mem, struct conf_info *conf)
 			times_to_div--;
 		}
 
-		switch(conf->size_unit) {
+		switch(conf.size_unit) {
 		case KILOS:
 			unit = "KiB";
 			break;
@@ -362,26 +412,33 @@ display_unit(unsigned int mem, struct conf_info *conf)
 	}
 
 	printf("%d%s", mem, unit);
-}
+} /* }}} */
 
 void
 print_usage(char **argv)
-{
+{ /* {{{ */
 	fprintf(stderr, "Usage: %s blah blah\n", argv[0]);
 	exit(EXIT_FAILURE);
-}
+} /* }}} */
+
+void
+display_help(void)
+{ /* {{{ */
+	puts("RT(F)M");
+	exit(EXIT_FAILURE);
+} /* }}} */
 
 
 /* UTILS */
 
 void
-get_tty_info(struct conf_info *conf)
-{
+get_tty_info(void)
+{ /* {{{ */
 	struct winsize win;
 
 	if(!isatty(STDOUT_FILENO)) {
-		conf->is_a_tty  = 0;
-		conf->tty_width = 80;
+		conf.is_a_tty  = 0;
+		conf.tty_width = 80;
 		return;
 	}
 	else {
@@ -389,14 +446,14 @@ get_tty_info(struct conf_info *conf)
 			fprintf(stderr, "Could not get TTY size !");
 			win.ws_col = 80;
 		}
-		conf->is_a_tty  = 1;
-		conf->tty_width = win.ws_col;
+		conf.is_a_tty  = 1;
+		conf.tty_width = win.ws_col;
 	}
-}
+} /* }}} */
 
 void
 explode_line(char *buffer, char *tag, char *value, char *unit)
-{
+{ /* {{{ */
 	char *arg;
 
 	arg = strtok(buffer, " ");
@@ -417,12 +474,11 @@ explode_line(char *buffer, char *tag, char *value, char *unit)
 		unit[0] = '\0';
 		strcpy(unit, arg);
 	}
-}
-
+} /* }}} */
 
 void
 insert_data(char *value, char *unit, unsigned int *where)
-{
+{ /* {{{ */
 	if(strcmp(unit, PARSE_KILO_BYTES_UNIT)) {
 		errno = 0; /* reset errno for error checking below */
 		*where = (unsigned int)strtoul(value, NULL, 10);
@@ -431,7 +487,7 @@ insert_data(char *value, char *unit, unsigned int *where)
 	}
 	else /* TODO, but should not happen */
 		printf("ERROR in insert_data");
-}
+} /* }}} */
 
 void
 convert_string_to_lower(char *s)
@@ -443,7 +499,7 @@ convert_string_to_lower(char *s)
 unsigned int
 proportionality(unsigned int have, unsigned int total, unsigned int ratio,
                 int *ceiled)
-{
+{ /* {{{ */
 	double n;
 	unsigned int o;
 
@@ -458,7 +514,7 @@ proportionality(unsigned int have, unsigned int total, unsigned int ratio,
 	}
 /*	putchar('\n'); */
 	return o;
-}
+} /* }}} */
 
 /*
 Copyright (c) 2013, Frank Villaro-Dixon
