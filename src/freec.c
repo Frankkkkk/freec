@@ -32,20 +32,12 @@ main(int argc, char **argv)
 
 	while(conf.count_times) {
 		get_meminfo(&memory_info);
-		/*
-		printf("memtot:  %u\n", memory_info.mem_total);
-		printf("memfree: %u\n", memory_info.mem_free);
-		printf("buffers: %u\n", memory_info.buffers);
-		printf("cached:  %u\n", memory_info.cached);
-		printf("swap_total: %u\n", memory_info.swap_total);
-		printf("swap_free:  %u\n", memory_info.swap_free);
-		*/
 		get_tty_info();
 		conf.bar_length = conf.tty_width - 10; /* FIXME */
 		work_meminfo(&memory_info);
 		display_meminfo(&memory_info);
 
-		if(conf.count_times > 0) /* -c -1 -> BUG FIXME */
+		if(conf.count_times > 0)
 			conf.count_times--;
 		if(conf.count_times)
 			sleep(conf.seconds);
@@ -64,6 +56,8 @@ conf_default_flags(void)
 	conf.humanize    = 0; /* Conflicts with size_unit */
 	conf.colorize    = 1;
 	conf.no_graph    = 0;
+	conf.no_swap     = 0;
+	conf.e           = 0;
 	conf.seconds     = 1;
 	conf.count_times = 1;
 	conf.is_a_tty    = 1;
@@ -71,31 +65,39 @@ conf_default_flags(void)
 	conf.bar_length  = BAR_LEN;
 } /* }}} */
 
-
 void
 get_opts(int argc, char **argv)
 { /* {{{ */
 	int opt, option_index;
 
-	static struct option long_options[] ={
+	static struct option long_options[] = {
 		{"bytes", no_argument, 0, 'b'},
+		{"byte", no_argument, 0, 'b'},
+		{"kilos", no_argument, 0, 'k'},
 		{"kilo", no_argument, 0, 'k'},
+		{"megas", no_argument, 0, 'm'},
 		{"mega", no_argument, 0, 'm'},
+		{"gigas", no_argument, 0, 'g'},
 		{"giga", no_argument, 0, 'g'},
+		{"teras", no_argument, 0, 'T'},
 		{"tera", no_argument, 0, 'T'},
 		{"humanize", no_argument, 0, 'h'},
 		{"human", no_argument, 0, 'h'},
 		{"count", required_argument, 0, 'c'},
 		{"seconds", required_argument, 0, 's'},
-		{"si", no_argument, 0, 'S'},
+		{"interval", required_argument, 0, 's'},
+		{"si", no_argument, 0, 'S'}, egg,
 		{"nocolor", no_argument, 0, 'C'},
 		{"no-color", no_argument, 0, 'C'},
 		{"nograph", no_argument, 0, 'G'},
 		{"no-graph", no_argument, 0, 'G'},
+		{"no-swap", no_argument, 0, 'w'},
+		{"noswap", no_argument, 0, 'w'},
 		{"help", no_argument, 0, '?'},
+		{"version", no_argument, 0, 'V'},
 		{0, 0, 0, 0}
 	};
-	const char *opts = "bkmgTSCs:c:G?h";
+	const char *opts = "bkmgTSCs:c:G?hVv";
 
 	option_index = 0;
 
@@ -137,22 +139,29 @@ get_opts(int argc, char **argv)
 				fprintf(stderr, "Value conversion failed "
 					      "when treating -c option\n");
 			break;
+		case 'E':
+			conf.e = 1;
+			break;
 		case 'G': /* no bar-graph */
 			conf.no_graph = 1;
-	 		break;
+			break;
+		case 'w': /* no swap showing */
+			conf.no_swap = 1;
+			break;
 		case 'h':
 			conf.humanize = 1;
 			break;
-		case '?':
-			display_help();
+		case 'V': /* FT */
+		case 'v':
+			display_version();
 			break;
+		case '?': /* FT */
 		default:
-			print_usage(argv);
+			display_help();
 			break;
 		}
 	}
 } /* }}} */
-
 
 void
 get_meminfo(struct meminfo *mem_info)
@@ -243,7 +252,7 @@ work_swap(struct meminfo *mem)
 { /* {{{ */
 	if(mem->swap_free == 0 && mem->swap_free == 0) {
 		mem->pixels_swap_free = 0;
-		mem->pixels_swap_used = 0;
+		mem->pixels_swap_used = conf.bar_length;
 	}
 	else {
 		mem->swap_used = mem->swap_total - mem->swap_free;
@@ -259,8 +268,9 @@ void
 display_meminfo(struct meminfo *mem)
 { /* {{{ */
 
-	/* DOING THE "RAM" FIRST */
+	if(conf.e) ee else {
 
+	/* DOING THE "RAM" FIRST */
 	if(!conf.no_graph) {
 		fputs(MEM_TAG"[", stdout);
 		display_pixel(mem->pixels_mem_used, CHAR_USED, COLOR_USED);
@@ -270,12 +280,6 @@ display_meminfo(struct meminfo *mem)
 		fputs("]\n", stdout);
 	}
 
-	/*
-	printf("U: "COLOR_USED"%d"COLOR_NORMAL"%s, ", mem->mem_used, "Kb");
-	printf("B: "COLOR_BUFFERS"%d"COLOR_NORMAL"%s, ", mem->buffers, "Kb");
-	printf("C: "COLOR_CACHED"%d"COLOR_NORMAL"%s, ", mem->cached, "Kb");
-	printf("F: "COLOR_FREE"%d"COLOR_NORMAL"%s\n", mem->mem_free, "Kb");
-	*/
 
 	if(conf.colorize)
 		fputs(COLOR_USED"U: ", stdout);
@@ -306,12 +310,11 @@ display_meminfo(struct meminfo *mem)
 	display_unit(mem->mem_free);
 
 	if(conf.colorize)
-		fputs(" "COLOR_NORMAL, stdout);
+		fputs(COLOR_NORMAL, stdout);
 	else
-		fputs(" ", stdout);
+		putchar('\n'); /* display_unit doesnt */
 
-
-	if(mem->swap_total) {
+	if(mem->swap_total && !(conf.no_swap)) {
 		putchar('\n');
 		if(!conf.no_graph) {
 			fputs(SWAP_TAG"[", stdout);
@@ -338,6 +341,7 @@ display_meminfo(struct meminfo *mem)
 	}
 
 	putchar('\n');
+	}
 
 } /* }}} */
 
@@ -460,17 +464,10 @@ humanize_unit(unsigned int *mem, int *divs, unsigned int scaler)
 } /* }}} */
 
 void
-print_usage(char **argv)
+display_version(void)
 { /* {{{ */
-	fprintf(stderr, "Usage: %s blah blah\n", argv[0]);
-	exit(EXIT_FAILURE);
-} /* }}} */
-
-void
-display_help(void)
-{ /* {{{ */
-	puts("RT(F)M");
-	exit(EXIT_FAILURE);
+	puts("freec "FREEC_VERSION);
+	exit(EXIT_SUCCESS);
 } /* }}} */
 
 
@@ -536,10 +533,10 @@ insert_data(char *value, char *unit, unsigned int *where)
 
 void
 convert_string_to_lower(char *s)
-{
+{ /* {{{ */
 	for (; *s; ++s)
 		*s = (char)tolower(*s);
-}
+} /* }}} */
 
 unsigned int
 proportionality(unsigned int have, unsigned int total, unsigned int ratio,
@@ -560,6 +557,28 @@ proportionality(unsigned int have, unsigned int total, unsigned int ratio,
 /*	putchar('\n'); */
 	return o;
 } /* }}} */
+
+void
+display_help(void)
+{ /* {{{ */
+	puts("(non-exhaustive) list of arguments for freec\n" \
+	"man freec(1) for more info ;)\n" \
+	"\n" \
+	"--byte(s) -b               Show units in bytes\n" \
+	"--kilo(s) -k               Show units in kilos\n" \
+	"--mega(s) -m               Show units in megass\n" \
+	"--giga(s) -g               Show units in gigas\n" \
+	"--tera(s) -T               Show units in teras !\n" \
+	"--human(ize) -h            Humanize the result\n" \
+	"--count -c X               Display the result X times\n" \
+	"--seconds --interval -s X  Display the results after X secs\n" \
+	"--si -S                    Display the results in SI units\n" \
+	"--nocolor --no-color -C    Display the result w/o color\n" \
+	"--nograph --no-graph -G    Display the result w/o the graph\n" \
+	"--noswap --no-swap -w      Do not display the swap\n");
+	exit(EXIT_FAILURE);
+} /* }}} */
+
 
 /*
 Copyright (c) 2013, Frank Villaro-Dixon
@@ -586,5 +605,10 @@ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. AND IF YOU READ
+ALL OF THIS LICENCE AND YOU LIKED THIS PROGRAM, YOU CAN OFFER ME A BEER. */
+
+/*
+       \|||/
+       (o o)
+----ooO-(_)-Ooo--------                                                       */
