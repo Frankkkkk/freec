@@ -25,9 +25,11 @@
 
 #define BAR_LEN      30
 
-
+#define DEFAULT_UNIT MEGAS
 
 /* You should not need to touch below */
+
+
 #define BYTES -1 /* division coef. */
 #define KILOS 0
 #define MEGAS 1
@@ -123,6 +125,9 @@ display_pixel(unsigned int times, char pixel, char *color);
 
 void
 display_unit(unsigned int mem);
+
+void
+humanize_unit(unsigned int *mem, int *divs, unsigned int scaler);
 
 void
 print_usage(char **argv);

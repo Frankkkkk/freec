@@ -59,9 +59,9 @@ main(int argc, char **argv)
 void
 conf_default_flags(void)
 { /* {{{ */
-	conf.size_unit   = MEGAS;
+	conf.size_unit   = DEFAULT_UNIT;
 	conf.SI_unit     = 0;
-	conf.humanize    = 1;
+	conf.humanize    = 0; /* Conflicts with size_unit */
 	conf.colorize    = 1;
 	conf.no_graph    = 0;
 	conf.seconds     = 1;
@@ -83,10 +83,11 @@ get_opts(int argc, char **argv)
 		{"mega", no_argument, 0, 'm'},
 		{"giga", no_argument, 0, 'g'},
 		{"tera", no_argument, 0, 'T'},
-		{"count", required_argument, 0, 'T'},
+		{"humanize", no_argument, 0, 'h'},
+		{"human", no_argument, 0, 'h'},
+		{"count", required_argument, 0, 'c'},
 		{"seconds", required_argument, 0, 's'},
 		{"si", no_argument, 0, 'S'},
-		{"help", no_argument, 0, 'H'},
 		{"nocolor", no_argument, 0, 'C'},
 		{"no-color", no_argument, 0, 'C'},
 		{"nograph", no_argument, 0, 'G'},
@@ -138,8 +139,10 @@ get_opts(int argc, char **argv)
 			break;
 		case 'G': /* no bar-graph */
 			conf.no_graph = 1;
+	 		break;
+		case 'h':
+			conf.humanize = 1;
 			break;
-		case 'h': /* fallthrough for help */
 		case '?':
 			display_help();
 			break;
@@ -353,20 +356,30 @@ display_pixel(unsigned int times, char pixel, char *color)
 void
 display_unit(unsigned int mem)
 { /* {{{ */
-	unsigned int converted;
-	unsigned int times_to_div;
+	int times_to_div;
 	char *unit;
 
 	times_to_div = conf.size_unit;
-	converted = mem;
 
 	if(conf.SI_unit) {
-		while(times_to_div > 0) {
-			mem /= 1000;
-			times_to_div--;
+
+		if(conf.humanize) {
+			humanize_unit(&mem, &times_to_div, 1000);
+		}
+		else {
+			while(times_to_div > 0) {
+				mem /= 1000;
+				times_to_div--;
+			}
+			if(times_to_div == -1)
+				mem *= 1000;
+			times_to_div = conf.size_unit;
 		}
 
-		switch(conf.size_unit) {
+		switch(times_to_div) {
+		case BYTES:
+			unit = "B";
+			break;
 		case KILOS:
 			unit = "KB";
 			break;
@@ -386,12 +399,24 @@ display_unit(unsigned int mem)
 		}
 	}
 	else {
-		while(times_to_div > 0) {
-			mem /= 1024;
-			times_to_div--;
+
+		if(conf.humanize) {
+			humanize_unit(&mem, &times_to_div, 1024);
+		}
+		else {
+			while(times_to_div > 0) {
+				mem /= 1024;
+				times_to_div--;
+			}
+			if(times_to_div == -1)
+				mem *= 1024;
+			times_to_div = conf.size_unit;
 		}
 
-		switch(conf.size_unit) {
+		switch(times_to_div) {
+		case BYTES:
+			unit = "B";
+			break;
 		case KILOS:
 			unit = "KiB";
 			break;
@@ -412,6 +437,26 @@ display_unit(unsigned int mem)
 	}
 
 	printf("%d%s", mem, unit);
+} /* }}} */
+
+void
+humanize_unit(unsigned int *mem, int *divs, unsigned int scaler)
+{ /* {{{ */
+	unsigned int before;
+
+	before = *mem;
+	*divs = 1; /* by default: kilos */
+	while(*mem >= scaler) {
+		before = *mem;
+		*mem /= scaler;
+		(*divs)++;
+	}
+
+	/* 1613 MB is 2GB, and not 1GB */
+	if((before - ((*mem) * scaler)) > (scaler / 2)) {
+		(*mem)++;
+	}
+	(*divs)--;
 } /* }}} */
 
 void
