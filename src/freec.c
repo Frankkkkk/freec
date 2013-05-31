@@ -19,7 +19,7 @@
 
 #include "freec.h"
 
-/* OKay, that is awefull, but much more simple */
+/* Okay, that is awful, but much more simple */
 struct conf_info conf;
 
 int
@@ -91,11 +91,14 @@ get_opts(int argc, char **argv)
 		{"no-graph", no_argument, 0, 'G'},
 		{"no-swap", no_argument, 0, 'w'},
 		{"noswap", no_argument, 0, 'w'},
+		{"forcetty", no_argument, 0, 'Y'},
+		{"tty", no_argument, 0, 'Y'},
+		{"TTY", no_argument, 0, 'Y'},
 		{"help", no_argument, 0, '?'},
 		{"version", no_argument, 0, 'V'},
 		{0, 0, 0, 0}
 	};
-	const char *opts = "bkmgTSCs:c:G?hVv";
+	const char *opts = "bkmgTSCs:c:G?hVvY";
 
 	option_index = 0;
 
@@ -145,6 +148,9 @@ get_opts(int argc, char **argv)
 			break;
 		case 'w': /* no swap showing */
 			conf.no_swap = 1;
+			break;
+		case 'Y': /* force being a TTY */
+			conf.is_a_tty = 2;
 			break;
 		case 'h':
 			conf.humanize = 1;
@@ -279,35 +285,35 @@ display_meminfo(struct meminfo *mem)
 	}
 
 
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(COLOR_USED"U: ", stdout);
 	else
 		fputs("U: ", stdout);
 
 	display_unit(mem->mem_used);
 
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(COLOR_NORMAL", "COLOR_BUFFERS"B: ", stdout);
 	else
 		fputs(", B: ", stdout);
 
 	display_unit(mem->buffers);
 
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(COLOR_NORMAL", "COLOR_CACHED"C: ", stdout);
 	else
 		fputs(", C: ", stdout);
 
 	display_unit(mem->cached);
 
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(COLOR_NORMAL", "COLOR_FREE"F: ", stdout);
 	else
 		fputs(", F: ", stdout);
 
 	display_unit(mem->mem_free);
 
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(COLOR_NORMAL, stdout);
 	else
 		putchar('\n'); /* display_unit doesnt */
@@ -323,14 +329,14 @@ display_meminfo(struct meminfo *mem)
 			fputs("]\n", stdout);
 		}
 
-		if(conf.colorize)
+		if(conf.colorize && conf.is_a_tty)
 			fputs(COLOR_USED"U: ", stdout);
 		else
 			fputs("U: ", stdout);
 
 		display_unit(mem->swap_used);
 
-		if(conf.colorize)
+		if(conf.colorize && conf.is_a_tty)
 			fputs(COLOR_NORMAL", "COLOR_FREE"F: ", stdout);
 		else
 			fputs(", F: ", stdout);
@@ -346,12 +352,12 @@ display_meminfo(struct meminfo *mem)
 void
 display_pixel(unsigned int times, char pixel, char *color)
 { /* {{{ */
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(color, stdout);
 
 	while(times-->0)
 		putchar(pixel);
-	if(conf.colorize)
+	if(conf.colorize && conf.is_a_tty)
 		fputs(COLOR_NORMAL, stdout);
 } /* }}} */
 
@@ -477,7 +483,8 @@ get_tty_info(void)
 	struct winsize win;
 
 	if(!isatty(STDOUT_FILENO)) {
-		conf.is_a_tty  = 0;
+		if(conf.is_a_tty != 2) /* forced as a tty */
+			conf.is_a_tty  = 0;
 		conf.tty_width = 80;
 		return;
 	}
@@ -573,7 +580,8 @@ display_help(void)
 	"--si -S                    Display the results in SI units\n" \
 	"--nocolor --no-color -C    Display the result w/o color\n" \
 	"--nograph --no-graph -G    Display the result w/o the graph\n" \
-	"--noswap --no-swap -w      Do not display the swap\n");
+	"--noswap --no-swap -w      Do not display the swap\n" \
+	"--forcetty --tty -Y        Force the output as being a TTY\n");
 	exit(EXIT_FAILURE);
 } /* }}} */
 
