@@ -31,7 +31,7 @@
 /* You should not need to touch below */
 /**************************************/
 
-#define FREEC_VERSION "1.0"
+#define FREEC_VERSION "1.1"
 
 #define BYTES -1 /* division coef. */
 #define KILOS 0
