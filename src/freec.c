@@ -43,7 +43,7 @@ main(int argc, char **argv)
 			sleep(conf.seconds);
 	}
 
-	return(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }
 
 void
