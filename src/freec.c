@@ -342,6 +342,9 @@ display_meminfo(struct meminfo *mem)
 			fputs(", F: ", stdout);
 
 		display_unit(mem->swap_free);
+		if(conf.colorize && conf.is_a_tty)
+			fputs(COLOR_NORMAL, stdout);
+
 	}
 
 	putchar('\n');
