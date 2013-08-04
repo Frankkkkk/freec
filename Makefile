@@ -25,7 +25,7 @@ all: ${EXEC}
 ${EXEC}: ${OBJS}
 	${CC} ${LDFLAGS} -o ${EXEC} ${OBJS}
 
-install-main: freec
+install-main: ${EXEC}
 	test -d ${DESTDIR}${BINDIR} || mkdir -p ${DESTDIR}${BINDIR}
 	install -m755 ${EXEC} ${DESTDIR}${BINDIR}/${EXEC}
 
